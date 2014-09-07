@@ -1,0 +1,82 @@
+<html>
+<head>
+   <title>
+      Teste de Audio
+   </title>
+</head>
+
+<style>
+body {
+   background: black;
+}
+
+canvas {
+   border: 1px solid lightgreen;
+   background: black;
+}
+</style>
+
+<body>
+   <canvas height="100" width="60"></canvas>
+   <script>
+      navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+      window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
+      function getAverage(array) {
+         var values = 0;
+         var average;
+
+         var length = array.length;
+
+         for (var i = 0; i < length; i++) {
+            values += array[i];
+         }
+
+         average = values / length;
+         return average;
+      }
+
+      if (!navigator.getUserMedia) {
+         console.log('Error: getUserMedia() not available.');
+      } else {
+         navigator.getUserMedia({audio: true}, function(localMediaStream) {
+            var canvas = document.querySelector('canvas');
+            var ctx = canvas.getContext('2d');
+            var grd = ctx.createLinearGradient(0,0,0,100);
+            grd.addColorStop(0,"#00ff00");
+            grd.addColorStop(1,"#ffff00");
+            ctx.fillStyle = grd;
+            
+            var average = 0;
+            var max = 50;
+
+            var aC = new AudioContext();
+            var mic = aC.createMediaStreamSource(localMediaStream);
+            var analyser = aC.createAnalyser();
+
+            analyser.smoothingTimeConstant = 0.3;
+            //analyser.fftSize = 1024;
+
+            mic.connect(analyser);
+            //analyser.connect(aC.destination);
+
+            setInterval(function () {
+               var array =  new Uint8Array(analyser.frequencyBinCount);
+               analyser.getByteFrequencyData(array);
+               var average = getAverage(array)
+
+               if (average > max) average = max;
+
+               ctx.clearRect(0, 0, 60, 100);
+               ctx.fillRect(0,100*(1-average/max),60,100);
+               delete array;
+            }, 16)
+         },
+         function (e) {
+            console.log('Error: ', e);
+         });
+      }
+   </script>
+</body>
+
+</html>

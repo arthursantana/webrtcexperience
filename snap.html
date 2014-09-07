@@ -1,0 +1,64 @@
+<html>
+<head>
+   <title>
+      Teste de Audio
+   </title>
+</head>
+
+<style>
+video, canvas {
+   display: inline-block;
+   width: 720px;
+   height: 720px;
+   background: lightblue;
+   border: 1px solid lightgreen;
+}
+
+video {
+   -webkit-filter: hue-rotate(180deg);
+}
+
+</style>
+
+<body>
+   <video autoplay></video>
+   <canvas height="720" width="720"></canvas>
+
+   <script>
+      navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+
+      var video = document.querySelector('video');
+      var canvas = document.querySelector('canvas');
+      var ctx = canvas.getContext('2d');
+      var stream = null;
+
+      var snapshot = function () {
+         if (stream) {
+            ctx.drawImage(video, 0, 0);
+         }
+         else {
+            alert('no stream yet!')
+         }
+      };
+
+      if (!navigator.getUserMedia) {
+         console.log('Error: getUserMedia() not available.');
+      } else {
+         navigator.getUserMedia({video: true, audio: true}, function(localMediaStream) {
+            stream = localMediaStream;
+            video.src = window.URL.createObjectURL(localMediaStream);
+
+            video.onloadedmetadata = function(e) {
+               // Ready to go. Do some stuff.
+            };
+         },
+         function (e) {
+            console.log('Error: ', e);
+         });
+      }
+   </script>
+
+   <input type="button" value="snapshot" onclick="javascript: snapshot();" />
+</body>
+
+</html>
